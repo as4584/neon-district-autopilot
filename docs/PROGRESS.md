@@ -11,6 +11,10 @@
 - Existing channel videos were organized into two public playlists.
 - Unsupported promises about ads, interruptions, and copyright were removed from tracked video descriptions.
 - Curated model revisions, download budgets, hashes, and licensing blockers are recorded.
+- All 47 offline regression tests passed both locally and on a clean GitHub Actions Windows runner.
+- Weekly native model staging and sanitized findings tasks are enabled; a live report publication was verified.
+
+Tracking: [daily publishing acceptance](https://github.com/as4584/neon-district-autopilot/issues/1), [HeartMuLa auditions](https://github.com/as4584/neon-district-autopilot/issues/2), [Stable Audio gate](https://github.com/as4584/neon-district-autopilot/issues/3).
 
 ### Pending Acceptance
 
