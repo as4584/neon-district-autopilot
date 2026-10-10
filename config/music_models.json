@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "baseline": "ace-step",
+  "policy": {
+    "max_download_gib": 20,
+    "min_free_disk_gib": 40,
+    "audition_seconds": 30,
+    "comparison_days": 14,
+    "minimum_videos_per_arm": 3,
+    "minimum_views_per_arm": 100,
+    "minimum_watch_time_lift": 0.15,
+    "automatic_promotion": false
+  },
+  "models": [
+    {"id": "ace-step", "license": "Apache-2.0", "state": "baseline", "backend": "ace-step", "downloads": []},
+    {
+      "id": "heartmula-3b-4bit",
+      "license": "Apache-2.0",
+      "state": "staging",
+      "backend": "heartmula",
+      "blocker": "Isolated Windows runtime and vocal-free auditions must pass before publishing.",
+      "downloads": [
+        {"repo": "PavonicAI/HeartMuLa-3B-4bit", "revision": "d0f0a2a8383c04bb32d137a33b6ba8c76caa265c", "folder": "HeartMuLa-oss-3B"},
+        {"repo": "HeartMuLa/HeartCodec-oss-20260123", "revision": "f889dab0532cfa4bf459f2a3367eb6d346b8eeda", "folder": "HeartCodec-oss"},
+        {"repo": "HeartMuLa/HeartMuLaGen", "revision": "2e18e01702011f4f7dc8642b6260967df62417ea", "folder": "."}
+      ]
+    },
+    {
+      "id": "stable-audio-3-small-music",
+      "license": "Stability AI Community License; eligibility and acceptance required",
+      "state": "license-blocked",
+      "backend": "stable-audio-3",
+      "blocker": "Human must accept the Hugging Face gate and confirm commercial eligibility.",
+      "downloads": []
+    }
+  ]
+}

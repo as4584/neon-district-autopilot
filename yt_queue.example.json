@@ -1,0 +1,4 @@
+{
+  "_meta": {"privacy": "unlisted", "loop_to_seconds": 3600, "default_duration_seconds": 300, "category_id": "10"},
+  "queue": [{"id": "EXAMPLE01", "status": "pending", "series": "Rest / Sleep", "genre": "sleep", "audio_model": "ace-step", "duration_hours": 1, "track_count": 4, "title": "1 Hour Quiet Rain | Music for Rest", "prompt": "soft rainfall, warm sustained pads, quiet piano, instrumental, no vocals, no percussion", "tags": ["rain music", "sleep music"], "created": null, "youtube_id": null}]
+}

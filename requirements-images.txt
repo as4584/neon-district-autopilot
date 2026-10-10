@@ -1,0 +1,7 @@
+# Install torch==2.11.0 from the official CUDA 12.8 wheel index first.
+diffusers==0.41.0
+transformers==5.19.0
+accelerate==1.15.0
+huggingface-hub==1.33.0
+Pillow==12.3.0
+sentencepiece==0.2.2
