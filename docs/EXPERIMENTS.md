@@ -14,6 +14,7 @@ See [registry](../config/music_models.json). Downloads use immutable revisions, 
 
 - Compare the first 14 calendar days after public publication, with three days for analytics ingestion.
 - Keep jazz and sleep separate; keep 1-, 6-, and 12-hour sessions separate.
+- Match original mix length and track variety as well as final video duration before attributing differences to an engine.
 - At least three videos and 100 views per arm before review eligibility. These are provisional operational thresholds, not statistical-significance claims.
 - Track watch minutes per view, watch hours, generation reliability, and local resource costs.
 - Missing or unavailable metrics remain missing. No CTR is fabricated.

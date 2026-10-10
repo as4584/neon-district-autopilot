@@ -11,14 +11,16 @@
 - Existing channel videos were organized into two public playlists.
 - Unsupported promises about ads, interruptions, and copyright were removed from tracked video descriptions.
 - Curated model revisions, download budgets, hashes, and licensing blockers are recorded.
-- All 47 offline regression tests passed both locally and on a clean GitHub Actions Windows runner.
+- All 50 offline regression tests passed both locally and on a clean GitHub Actions Windows runner.
 - Weekly native model staging and sanitized findings tasks are enabled; a live report publication was verified.
+- FLUX weights completed SHA256 verification; jazz, sleep bedroom, and cozy rain window generation passed actual inspection and visual QA.
+- A deliberately incorrect local jazz cover was rejected for the sleep target.
+- Preserved recovery audio passed technical QA: 300 seconds, 48 kHz stereo, -17 dB average and -1 dB peak.
 
 Tracking: [daily publishing acceptance](https://github.com/as4584/neon-district-autopilot/issues/1), [HeartMuLa auditions](https://github.com/as4584/neon-district-autopilot/issues/2), [Stable Audio gate](https://github.com/as4584/neon-district-autopilot/issues/3).
 
 ### Pending Acceptance
 
-- Complete FLUX installation and generate a matching local cover.
 - Publish one real recovery video, verify its processing and visibility, then enable daily dispatch.
 - Install and verify isolated alternative music runtimes; audition for vocal leakage and harsh transitions.
 - Run balanced challenger trials by series and duration.

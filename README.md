@@ -9,8 +9,8 @@ This is a clean public showcase, not a copy of the private operating repository.
 | Capability | Evidence / Status |
 | --- | --- |
 | Local music generation | ACE-Step generated a verified 30-second stereo test on Windows |
-| Local artwork replacement | FLUX.2-klein-4B installation in progress; production acceptance pending |
-| Visual QA | Local vision model passed a matching cover and rejected a mismatched cover |
+| Local artwork replacement | FLUX.2-klein-4B installed and hash-verified; three actual local scenes passed |
+| Visual QA | All three local scenes passed; deliberately mismatched jazz/sleep cover rejected |
 | Rendering | Verified 1080p NVENC + AAC test; 1/6/12-hour targets have regression coverage |
 | Channel organization | Two public series playlists; existing long-form videos organized |
 | Daily publishing | Dispatcher implemented; native task disabled until real recovery upload passes |
