@@ -40,6 +40,7 @@ import yt_stitch
 import yt_seo
 import yt_visual_qa
 import yt_series
+import yt_audio_qa
 try:
     import yt_thumbnail
 except Exception as e:
@@ -246,6 +247,13 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
         # Shut down ACE-Step immediately — render/upload don't need it
         stop_ace_step_api()
         log("  ACE-Step engine stopped (freeing VRAM for render)")
+
+    try:
+        audio_qa = yt_audio_qa.inspect(audio_path)
+        log(f"  Audio technical QA passed: mean={audio_qa['mean_volume']}dB, peak={audio_qa['max_volume']}dB")
+    except Exception as exc:
+        log(f"  ERROR: Audio technical QA blocked upload ({type(exc).__name__}): {exc}")
+        return False
 
     # ── Step 2: Render to 1-hour MP4 ─────────────────────────────────────────
     video_out = str(BASE_DIR / "test_outputs" / f"video_{item_id}_{ts}.mp4")

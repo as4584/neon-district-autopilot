@@ -422,6 +422,7 @@ class PipelineRegressionTests(unittest.TestCase):
             with mock.patch.object(yt_autopost, "LOG_FILE", Path(td) / "autopost.log"), \
                  mock.patch.object(yt_autopost.yt_generate, "generate", return_value=str(Path(td) / "audio.flac")), \
                  mock.patch.object(yt_autopost, "stop_ace_step_api"), \
+                 mock.patch.object(yt_autopost.yt_audio_qa, "inspect", return_value={"mean_volume": -17, "max_volume": -1}), \
                  mock.patch.object(
                      yt_autopost.yt_visual_qa,
                      "approve_cover",
