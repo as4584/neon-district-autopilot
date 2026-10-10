@@ -2,6 +2,27 @@
 
 ## 2026-10-10: Recovery and Public Showcase
 
+### Motion Requirement Correction
+
+The initial camera/light animation was a misunderstanding of the requested motion.
+Those effects are now disabled. Future clips should contain real image-to-video
+environmental motion with a locked camera and stable lighting. Daily uploads keep
+clean still imagery until this new stage passes acceptance; existing public videos
+and thumbnails remain untouched.
+
+Wan 2.2 TI2V 5B is the first local audition candidate, pinned to
+`b8fff7315c768468a5333511427288870b2e9635`. Its ungated Apache-2.0 weights require
+31.85 GiB. The worker uses CPU offload and a bounded low-resolution rain-flow
+test because the host has 16 GiB VRAM, below the official standard-resolution
+24 GiB recommendation. Weight download and runtime acceptance are distinct gates.
+
+The initial range transfer was too slow, and the standard Hub CLI attempt did
+not complete. Both transfers were stopped with partial files preserved. No I2V
+clip was generated or accepted. The offline worker and bounds tests are staged;
+the model is not connected to daily publishing. A completed hash-verified download,
+actual generation, object-motion inspection, temporal QA, and loop preparation
+are still required before enabling generated clips.
+
 ### Verified
 
 - Windows-native regression tests pass without production queues or artwork.

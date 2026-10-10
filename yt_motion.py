@@ -1,4 +1,4 @@
-"""Small seamless ambient motion using local FFmpeg, with no video-model download."""
+"""Long-session muxing; still fallback until real image-to-video is accepted."""
 
 import hashlib
 import subprocess
@@ -7,20 +7,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 FPS = 30
 LOOP_SECONDS = 30
-VERSION = 'ambient-motion-v3'
+VERSION = 'still-imagery-v1'
 
 
 def motion_filter():
-    frames = FPS * LOOP_SECONDS
-    return (
-        'scale=2560:1440:force_original_aspect_ratio=increase,crop=2560:1440,'
-        f"zoompan=z='1.015+0.004*sin(2*PI*on/{frames})':"
-        f"x='(iw-iw/zoom)/2+(iw-iw/zoom)*0.15*sin(2*PI*on/{frames})':"
-        f"y='(ih-ih/zoom)/2+(ih-ih/zoom)*0.1*cos(2*PI*on/{frames})':"
-        f'd=1:s=1920x1080:fps={FPS},'
-        "eq=brightness='0.002*(1-cos(2*PI*t/10))+0.001*(1-cos(2*PI*t/15))':eval=frame,"
-        'format=yuv420p'
-    )
+    return 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,format=yuv420p'
 
 
 def render_scene(image_path):

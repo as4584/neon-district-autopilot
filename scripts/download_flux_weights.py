@@ -39,11 +39,11 @@ def fetch_range(url, start, end, expected):
             time.sleep(2 ** attempt)
 
 
-def download(entry, revision):
+def download(entry, revision, repo=REPO, destination=DESTINATION):
     relative = Path(entry['rfilename'])
     if relative.is_absolute() or '..' in relative.parts:
         raise RuntimeError('Unsafe repository filename')
-    target = DESTINATION / relative
+    target = destination / relative
     target.parent.mkdir(parents=True, exist_ok=True)
     expected = entry.get('size')
     checksum = entry.get('lfs', {}).get('sha256')
@@ -55,7 +55,7 @@ def download(entry, revision):
             return
     partial = target.with_suffix(target.suffix + '.part')
     offset = partial.stat().st_size if partial.exists() else 0
-    url = f'https://huggingface.co/{REPO}/resolve/{revision}/{relative.as_posix()}'
+    url = f'https://huggingface.co/{repo}/resolve/{revision}/{relative.as_posix()}'
     with partial.open('ab') as output, ThreadPoolExecutor(max_workers=4) as ranges:
         while offset < expected:
             # Bound concurrent transfers and RAM while preserving a resumable prefix.

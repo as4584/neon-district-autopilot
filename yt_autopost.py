@@ -338,7 +338,7 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
             if result.returncode != 0:
                 raise RuntimeError(f"ffmpeg failed: {result.stderr[-500:]}")
         else:
-            log('  Rendering a small seamless local camera/light loop...')
+            log('  Rendering imagery-only still scene; real image-to-video acceptance pending...')
             scene = yt_motion.render_scene(cover_path)
             yt_motion.render_session(scene, audio_path, video_out, loop_to)
         log(f"  Video: {video_out} ({Path(video_out).stat().st_size / 1_048_576:.0f} MB)")

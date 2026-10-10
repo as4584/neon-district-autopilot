@@ -40,11 +40,10 @@ class ImageryMotionTests(unittest.TestCase):
                 (Path(folder) / 'TEST.json').write_text(json.dumps({'layout_version': 'old-text-v1'}))
                 self.assertFalse(yt_thumbnail.is_imagery_only('TEST'))
 
-    def test_motion_is_periodic_and_never_draws_labels(self):
+    def test_still_fallback_never_moves_camera_lights_or_draws_labels(self):
         filter_graph = yt_motion.motion_filter()
-        self.assertIn('zoompan', filter_graph)
-        self.assertIn('on/900', filter_graph)
-        self.assertIn('brightness=', filter_graph)
+        self.assertNotIn('zoompan', filter_graph)
+        self.assertNotIn('brightness=', filter_graph)
         self.assertNotIn('drawtext', filter_graph)
         self.assertNotIn('overlay', filter_graph)
 

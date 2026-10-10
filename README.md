@@ -11,7 +11,7 @@ This is a clean public showcase, not a copy of the private operating repository.
 | Local music generation | ACE-Step generated a verified 30-second stereo test on Windows |
 | Local artwork replacement | FLUX.2-klein-4B installed and hash-verified; three actual local scenes passed |
 | Visual QA | All three local scenes passed; deliberately mismatched jazz/sleep cover rejected |
-| Rendering | Imagery-only 1080p local camera/light loop passed pixel-motion and continuity checks; long sessions stream-copy the loop |
+| Rendering | Imagery-only still fallback; camera/light effects disabled; genuine local I2V candidate awaiting acceptance |
 | Channel organization | Two public series playlists; existing long-form videos organized |
 | Daily publishing | Enabled daily at 09:00 local; recovery video verified public/processed and same-day duplicate skip confirmed |
 | Model experiments | Curated pinned-weight staging and equal-age reporting implemented |
@@ -25,7 +25,7 @@ This is a clean public showcase, not a copy of the private operating repository.
 ```text
 Daily queue -> local instrumental masters -> crossfade mix
            -> local FLUX artwork -> strict visual QA
-           -> local camera/light loop -> 1/6/12-hour render -> frame/duration QA
+           -> still imagery (accepted I2V clips planned) -> 1/6/12-hour render -> frame/duration QA
            -> authenticated channel check -> YouTube -> receipt + playlist + processing readback
 
 Weekly pinned-model staging -> isolated runtime acceptance (pending)
@@ -38,7 +38,7 @@ Weekly analytics -> schema-filtered aggregate findings -> this repository
 
 Daily publishing stays on the accepted baseline when challengers are unavailable. Model downloads never execute repository Python code, accept licenses, or enable an unverified engine. Shorts require separate human preview approval.
 
-Artwork changes apply to future uploads only. No existing public video or thumbnail is removed, replaced, or reuploaded. Motion is subtle procedural camera movement and light variation, not a claim that rain or objects are AI-animated.
+Artwork changes apply to future uploads only. No existing public video or thumbnail is removed, replaced, or reuploaded. The requested motion is genuine image-to-video scene animation: moving rain, water, foliage, or other environmental objects with a locked camera and stable lighting. Procedural camera/light effects were rejected and are disabled. Daily publishing uses still imagery until a local video model passes acceptance.
 
 ## Native Schedule
 
