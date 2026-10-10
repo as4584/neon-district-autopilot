@@ -29,6 +29,7 @@ import time
 from pathlib import Path
 
 import requests
+import isodate
 sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 try:
     import doppler_env
@@ -39,6 +40,44 @@ except Exception:
 
 TOKEN_URL  = "https://oauth2.googleapis.com/token"
 UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos"
+
+
+def verify_uploaded_video(video_id, privacy, target_seconds, timeout=3600):
+    """Wait for processing and validate read-back; never retry uploads here."""
+    token = get_access_token()
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            response = requests.get('https://www.googleapis.com/youtube/v3/videos',
+                                    params={'part': 'snippet,status,contentDetails,processingDetails', 'id': video_id},
+                                    headers={'Authorization': f'Bearer {token}'}, timeout=30)
+        except requests.RequestException:
+            raise RuntimeError('Processing read-back network failure; reconcile the accepted upload') from None
+        if response.status_code != 200:
+            raise RuntimeError(f'Processing read-back failed (HTTP {response.status_code}); upload already accepted')
+        videos = response.json().get('items', [])
+        if videos:
+            video = videos[0]
+            if video['snippet']['channelId'] != 'UCWO8s_ObXOM5f_9YocsTvuQ':
+                raise RuntimeError('Uploaded video channel mismatch')
+            status = video['status']
+            if status.get('privacyStatus') != privacy:
+                raise RuntimeError('Uploaded video visibility does not match requested privacy')
+            processing = video.get('processingDetails', {}).get('processingStatus')
+            if processing in ('failed', 'terminated') or status.get('uploadStatus') in ('failed', 'rejected', 'deleted'):
+                raise RuntimeError('YouTube processing failed or rejected the accepted upload; do not reupload blindly')
+            if processing == 'succeeded' or status.get('uploadStatus') == 'processed':
+                try:
+                    seconds = isodate.parse_duration(video['contentDetails']['duration']).total_seconds()
+                except Exception:
+                    raise RuntimeError('Processed video duration could not be validated') from None
+                if not 0 < seconds <= 43200 or abs(seconds - target_seconds) > 2:
+                    raise RuntimeError('Processed video duration does not match the accepted render')
+                return {'youtube_id': video_id, 'privacy': privacy, 'duration_seconds': seconds,
+                        'processing': 'succeeded', 'channel_verified': True}
+        if time.monotonic() >= deadline:
+            raise RuntimeError('YouTube processing is still pending; reconcile the accepted upload, do not reupload')
+        time.sleep(30)
 
 def _creds():
     return (

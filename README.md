@@ -11,9 +11,9 @@ This is a clean public showcase, not a copy of the private operating repository.
 | Local music generation | ACE-Step generated a verified 30-second stereo test on Windows |
 | Local artwork replacement | FLUX.2-klein-4B installed and hash-verified; three actual local scenes passed |
 | Visual QA | All three local scenes passed; deliberately mismatched jazz/sleep cover rejected |
-| Rendering | Verified 1080p NVENC + AAC test; 1/6/12-hour targets have regression coverage |
+| Rendering | Imagery-only 1080p local camera/light loop passed pixel-motion and continuity checks; long sessions stream-copy the loop |
 | Channel organization | Two public series playlists; existing long-form videos organized |
-| Daily publishing | Dispatcher implemented; native task disabled until real recovery upload passes |
+| Daily publishing | Enabled daily at 09:00 local; recovery video verified public/processed and same-day duplicate skip confirmed |
 | Model experiments | Curated pinned-weight staging and equal-age reporting implemented |
 | Alternative music engines | HeartMuLa runtime/auditions pending; Stable Audio license gate pending |
 | Automatic model selection | Not enabled; no comparable audience evidence yet |
@@ -25,8 +25,8 @@ This is a clean public showcase, not a copy of the private operating repository.
 ```text
 Daily queue -> local instrumental masters -> crossfade mix
            -> local FLUX artwork -> strict visual QA
-           -> 1/6/12-hour render -> frame/duration QA
-           -> authenticated channel check -> YouTube -> receipt + playlist
+           -> local camera/light loop -> 1/6/12-hour render -> frame/duration QA
+           -> authenticated channel check -> YouTube -> receipt + playlist + processing readback
 
 Weekly pinned-model staging -> isolated runtime acceptance (pending)
                            -> vocal-free auditions (pending)
@@ -37,6 +37,8 @@ Weekly analytics -> schema-filtered aggregate findings -> this repository
 ```
 
 Daily publishing stays on the accepted baseline when challengers are unavailable. Model downloads never execute repository Python code, accept licenses, or enable an unverified engine. Shorts require separate human preview approval.
+
+Artwork changes apply to future uploads only. No existing public video or thumbnail is removed, replaced, or reuploaded. Motion is subtle procedural camera movement and light variation, not a claim that rain or objects are AI-animated.
 
 ## Native Schedule
 

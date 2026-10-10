@@ -41,6 +41,7 @@ import yt_seo
 import yt_visual_qa
 import yt_series
 import yt_audio_qa
+import yt_motion
 try:
     import yt_thumbnail
 except Exception as e:
@@ -91,9 +92,9 @@ def pick_next(q: dict, force_id: str = None) -> dict | None:
     """Return next pending queue item (or specific ID if forced)."""
     for item in q["queue"]:
         if force_id:
-            if item["id"] == force_id and item["status"] == "pending":
+            if item["id"] == force_id and item["status"] == "pending" and not item.get("youtube_id"):
                 return item
-        elif item["status"] == "pending":
+        elif item["status"] == "pending" and not item.get("youtube_id"):
             return item
     return None
 
@@ -270,33 +271,17 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
     # Ollama rejects the current candidate.
     try:
         existing_ai_cover = BASE_DIR / "covers" / f"{item_id}.jpg"
-        if not existing_ai_cover.exists():
-            raise FileNotFoundError("no existing item-specific cover")
+        if not existing_ai_cover.exists() or yt_thumbnail is None or not yt_thumbnail.is_imagery_only(item_id):
+            if yt_thumbnail is None:
+                raise RuntimeError('Local artwork module unavailable')
+            existing_ai_cover = Path(yt_thumbnail.generate(item))
         log("  Reusing existing item-specific cover for visual QA...")
         cover_path = str(existing_ai_cover)
         log(f"  Cover: {Path(cover_path).name}")
         use_video_loop = False
     except Exception as thumb_err:
-        log(f"  Thumbnail generation failed ({thumb_err}) — falling back to cover_video/image")
-
-    if not cover_path:
-        # Per-item override
-        item_cover = item.get("cover")
-        if item_cover and Path(item_cover).exists():
-            cover_path = item_cover
-            use_video_loop = item_cover.endswith((".mov", ".mp4", ".avi"))
-        elif cover_video and Path(cover_video).exists():
-            cover_path = cover_video
-            use_video_loop = True
-        elif cover_image and Path(cover_image).exists():
-            cover_path = cover_image
-            use_video_loop = False
-        else:
-            if yt_thumbnail is None:
-                log("  ERROR: No cover or local thumbnail module available.")
-                return False
-            log("  Generating missing cover with the local image model...")
-            cover_path = yt_thumbnail.generate(item)
+        log(f"  ERROR: Imagery-only artwork unavailable ({type(thumb_err).__name__}); legacy text covers are not a fallback.")
+        return False
 
     def regenerate_cover_locally() -> str:
         if yt_thumbnail is None:
@@ -353,29 +338,9 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
             if result.returncode != 0:
                 raise RuntimeError(f"ffmpeg failed: {result.stderr[-500:]}")
         else:
-            # Static image cover: loop audio to fill loop_to seconds
-            import subprocess
-            vf = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black"
-            cmd = [
-                "ffmpeg", "-y",
-                "-loop", "1", "-framerate", "1", "-i", cover_path,
-                "-stream_loop", "-1", "-i", audio_path,
-                "-t", str(loop_to),
-                "-map", "0:v:0", "-map", "1:a:0",
-                "-vf", vf,
-                "-c:v", "h264_nvenc", "-preset", "fast", "-b:v", "2M",
-                "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-ac", "2",
-                "-pix_fmt", "yuv420p",
-                "-movflags", "+faststart",
-                video_out,
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode != 0:
-                cmd[cmd.index("h264_nvenc")] = "libx264"
-                cmd[cmd.index("fast")] = "ultrafast"
-                result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode != 0:
-                raise RuntimeError(f"ffmpeg (static image) failed: {result.stderr[-500:]}")
+            log('  Rendering a small seamless local camera/light loop...')
+            scene = yt_motion.render_scene(cover_path)
+            yt_motion.render_session(scene, audio_path, video_out, loop_to)
         log(f"  Video: {video_out} ({Path(video_out).stat().st_size / 1_048_576:.0f} MB)")
     except Exception as e:
         log(f"  ERROR during render: {e}")
@@ -447,6 +412,7 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
         video_id = video.get("id")
         if not video_id:
             raise RuntimeError("YouTube did not return a video ID")
+        item['youtube_id'] = video_id
         receipt = BASE_DIR / "test_outputs" / f"upload_receipt_{item_id}.json"
         receipt.write_text(json.dumps({
             "id": item_id, "youtube_id": video_id, "privacy": privacy,
@@ -468,6 +434,11 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
             log("  Video organized into its listening series.")
         except Exception as exc:
             log(f"  WARNING: Playlist organization needs retry ({type(exc).__name__})")
+        log('  Waiting for YouTube processing and visibility read-back...')
+        verified = yt_upload.verify_uploaded_video(video_id, privacy, loop_to)
+        (BASE_DIR / 'test_outputs' / f'upload_verification_{item_id}.json').write_text(
+            json.dumps(verified, indent=2), encoding='utf-8')
+        log('  YouTube processing, channel identity, visibility, and duration verified.')
     except Exception as e:
         log(f"  ERROR during upload: {e}")
         log(f"  Video preserved for retry: {video_out}")

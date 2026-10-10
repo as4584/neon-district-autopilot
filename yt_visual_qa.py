@@ -9,6 +9,7 @@ replacement also passes.
 from __future__ import annotations
 
 import base64
+import io
 import json
 import os
 import subprocess
@@ -19,6 +20,7 @@ from pathlib import Path
 from typing import Callable
 
 import requests
+from PIL import Image
 
 
 BASE_DIR = Path(__file__).parent
@@ -137,8 +139,8 @@ The image must:
 3. Be professional 16:9 music-video artwork without obvious corruption, random UI,
    unrelated subject matter, third-party watermarks, or illegible AI text.
 
-The pipeline intentionally adds the video title and "Neon District Archive" as
-small branding overlays. Those two overlays are allowed and are not watermarks.
+Future artwork must be imagery-only: no title overlays, channel logos, branding
+bars, captions, or generated lettering. Flag any such text as a mismatch.
 
 Do not give content-match credit merely because overlay text repeats the title.
 Return only JSON with this exact shape:
@@ -175,6 +177,18 @@ Return only JSON with this exact shape:
             break
         except (requests.RequestException, KeyError, TypeError, ValueError) as exc:
             last_error = exc
+            if isinstance(exc, requests.HTTPError) and response.status_code >= 500:
+                # A GPU runner failure can still be reviewed locally on the CPU.
+                body['options'].update({'num_gpu': 0, 'num_ctx': 4096})
+                timeout = max(timeout, 600)
+                try:
+                    with Image.open(io.BytesIO(base64.b64decode(image_b64))) as image:
+                        image.thumbnail((768, 768))
+                        output = io.BytesIO()
+                        image.convert('RGB').save(output, format='JPEG', quality=92)
+                    body['messages'][0]['images'] = [base64.b64encode(output.getvalue()).decode('ascii')]
+                except (OSError, ValueError):
+                    pass
 
     if payload is None:
         raise VisualQAFailed(
@@ -187,14 +201,15 @@ Return only JSON with this exact shape:
     content_min = float(os.environ.get("VISUAL_QA_CONTENT_MIN", "7"))
     neon_min = float(os.environ.get("VISUAL_QA_NEON_MIN", "7"))
     quality_min = float(os.environ.get("VISUAL_QA_QUALITY_MIN", "7"))
+    mismatches = payload.get("mismatches", [])
+    if not isinstance(mismatches, list):
+        mismatches = [str(mismatches)]
     passed = (
         content_score >= content_min
         and neon_score >= neon_min
         and quality_score >= quality_min
+        and not mismatches
     )
-    mismatches = payload.get("mismatches", [])
-    if not isinstance(mismatches, list):
-        mismatches = [str(mismatches)]
     return VisualQAResult(
         passed=passed,
         content_match_score=content_score,

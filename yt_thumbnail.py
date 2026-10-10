@@ -2,8 +2,8 @@
 yt_thumbnail.py — Generate YouTube thumbnails using local Hugging Face models.
 
 Generates a 1280x720 JPEG thumbnail for each queue item. Uses genre-specific
-neon aesthetics for the Neon District Archive brand, then composites text
-overlays (title + channel name) via Pillow.
+neon aesthetics for the Neon District Archive brand. Future covers preserve the
+imagery without titles, branding bars, or logo overlays.
 
 Image generation uses an isolated local worker, with no cloud fallback.
 
@@ -25,6 +25,9 @@ import argparse
 import json
 import os
 import sys
+import hashlib
+import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -36,6 +39,18 @@ BASE_DIR    = Path(__file__).parent
 QUEUE_FILE  = BASE_DIR / "yt_queue.json"
 COVERS_DIR  = BASE_DIR / "covers"
 COVERS_DIR.mkdir(exist_ok=True)
+LAYOUT_VERSION = 'imagery-only-v1'
+
+
+def is_imagery_only(item_id):
+    path = COVERS_DIR / f'{item_id}.jpg'
+    marker = path.with_suffix('.json')
+    try:
+        metadata = json.loads(marker.read_text(encoding='utf-8'))
+        return (metadata.get('layout_version') == LAYOUT_VERSION and
+                metadata.get('sha256') == hashlib.sha256(path.read_bytes()).hexdigest())
+    except (OSError, ValueError):
+        return False
 
 # ── Genre → neon accent mapping ───────────────────────────────────────────────
 
@@ -305,7 +320,7 @@ def generate(item: dict, force: bool = False) -> str:
     item_id = item["id"]
     out_path = COVERS_DIR / f"{item_id}.jpg"
 
-    if out_path.exists() and not force:
+    if out_path.exists() and not force and is_imagery_only(item_id):
         print(f"  Thumbnail exists, skipping: {out_path.name}")
         return str(out_path)
 
@@ -318,14 +333,21 @@ def generate(item: dict, force: bool = False) -> str:
     img = generate_base_image(prompt)
     print(f"  Image generated: {img.size}")
 
-    # Precautionary watermark crop
-    img = crop_watermark_if_present(img)
-
-    # Composite text overlays
-    img = composite_text(img, item.get("title", ""), genre)
+    # Preserve the entire model-generated scene. No titles, logo, bars, or labels.
+    img = img.convert('RGB').resize((1280, 720), Image.Resampling.LANCZOS)
+    if out_path.exists():
+        digest = hashlib.sha256(out_path.read_bytes()).hexdigest()[:12]
+        backup = BASE_DIR / 'backups' / 'imagery-migration'
+        backup.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(out_path, backup / f'{item_id}-{digest}.jpg')
 
     # Save
     img.save(str(out_path), "JPEG", quality=95)
+    out_path.with_suffix('.json').write_text(json.dumps({
+        'layout_version': LAYOUT_VERSION,
+        'sha256': hashlib.sha256(out_path.read_bytes()).hexdigest(),
+        'created': datetime.now(timezone.utc).isoformat(),
+    }, indent=2), encoding='utf-8')
     print(f"  Saved: {out_path} ({out_path.stat().st_size // 1024} KB)")
 
     return str(out_path)
@@ -351,7 +373,7 @@ def main():
     elif args.all:
         items = [
             i for i in q["queue"]
-            if i.get("status") == "pending" and not (COVERS_DIR / f"{i['id']}.jpg").exists()
+            if i.get("status") == "pending" and not is_imagery_only(i['id'])
         ]
         print(f"Found {len(items)} items missing thumbnails.")
     else:
