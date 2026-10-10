@@ -160,6 +160,22 @@ if ($LASTEXITCODE -ne 0) {
   $Issues.Add("Ollama visual QA unavailable: $qaDiscovery")
 }
 
+if (Get-Command Get-ScheduledTask -ErrorAction SilentlyContinue) {
+  $DailyTask = Get-ScheduledTask -TaskName 'NeonDistrict-Daily-YouTube' -ErrorAction SilentlyContinue
+  if ($DailyTask -and -not $DailyTask.Settings.Enabled) {
+    $Issues.Add('Native daily uploader is disabled; daily publishing is not active')
+  }
+  foreach ($TaskName in @('NeonDistrict-Weekly-Model-Staging', 'NeonDistrict-Weekly-Findings')) {
+    $Task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    if ($Task -and $Task.Settings.Enabled) {
+      $Info = Get-ScheduledTaskInfo -TaskName $TaskName
+      if ($Info.LastTaskResult -notin @(0, 267009, 267011)) {
+        $Issues.Add("Scheduled job failed: $TaskName (exit=$($Info.LastTaskResult))")
+      }
+    }
+  }
+}
+
 $summary = [pscustomobject]@{
   ok = ($Issues.Count -eq 0)
   checked_at = (Get-Date).ToString("o")
