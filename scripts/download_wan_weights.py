@@ -28,7 +28,7 @@ def main():
     DESTINATION.mkdir(parents=True, exist_ok=True)
     print(f'Pinned Wan I2V staging: {size / 1024**3:.2f} GiB; inference offline; publishing unchanged.', flush=True)
     with ThreadPoolExecutor(max_workers=3) as pool:
-        list(pool.map(lambda entry: download(entry, REVISION, REPO, DESTINATION), files))
+        list(pool.map(lambda entry: download(entry, REVISION, REPO, DESTINATION, 8 * 1024**2), files))
     (DESTINATION / 'installation.json').write_text(json.dumps({
         'repo': REPO, 'revision': REVISION, 'sha256_verified': True}, indent=2), encoding='utf-8')
     print('Wan weights verified; local generation acceptance still required.', flush=True)

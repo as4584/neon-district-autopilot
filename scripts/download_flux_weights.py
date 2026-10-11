@@ -39,7 +39,7 @@ def fetch_range(url, start, end, expected):
             time.sleep(2 ** attempt)
 
 
-def download(entry, revision, repo=REPO, destination=DESTINATION):
+def download(entry, revision, repo=REPO, destination=DESTINATION, chunk_size=CHUNK):
     relative = Path(entry['rfilename'])
     if relative.is_absolute() or '..' in relative.parts:
         raise RuntimeError('Unsafe repository filename')
@@ -59,13 +59,14 @@ def download(entry, revision, repo=REPO, destination=DESTINATION):
     with partial.open('ab') as output, ThreadPoolExecutor(max_workers=4) as ranges:
         while offset < expected:
             # Bound concurrent transfers and RAM while preserving a resumable prefix.
-            starts = list(range(offset, min(offset + 4 * CHUNK, expected), CHUNK))
+            starts = list(range(offset, min(offset + 4 * chunk_size, expected), chunk_size))
             for payload in ranges.map(lambda start: fetch_range(
-                    url, start, min(start + CHUNK, expected) - 1, expected), starts):
+                    url, start, min(start + chunk_size, expected) - 1, expected), starts):
                 output.write(payload)
                 output.flush()
                 offset += len(payload)
-            print(f'{relative}: {offset / 1024**3:.2f}/{expected / 1024**3:.2f} GiB', flush=True)
+            if offset == expected or offset % (128 * 1024**2) < 4 * chunk_size:
+                print(f'{relative}: {offset / 1024**3:.2f}/{expected / 1024**3:.2f} GiB', flush=True)
     if checksum:
         with partial.open('rb') as source:
             if hashlib.file_digest(source, 'sha256').hexdigest() != checksum:

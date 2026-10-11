@@ -16,12 +16,23 @@ Wan 2.2 TI2V 5B is the first local audition candidate, pinned to
 test because the host has 16 GiB VRAM, below the official standard-resolution
 24 GiB recommendation. Weight download and runtime acceptance are distinct gates.
 
-The initial range transfer was too slow, and the standard Hub CLI attempt did
-not complete. Both transfers were stopped with partial files preserved. No I2V
-clip was generated or accepted. The offline worker and bounds tests are staged;
-the model is not connected to daily publishing. A completed hash-verified download,
-actual generation, object-motion inspection, temporal QA, and loop preparation
-are still required before enabling generated clips.
+The resumable public range download has now completed with SHA256 verification.
+Offline generation ran on the 16 GiB GPU after separating text encoding from
+video inference and moving cached prompt tensors onto the GPU. The image worker
+environment also requires `ftfy` for Wan prompt cleaning.
+
+Two genuine I2V auditions used an existing imagery-only bedroom cover at 640x352,
+24 fps. The 49-frame / 20-step audition remains pending human review. The
+121-frame / 30-step audition showed edge blocks and warped window details; it
+was rejected and its video deleted. Neither clip is approved or connected to
+daily publishing. Convincing object motion, temporal QA and loop preparation
+remain acceptance gates. A still render is not represented as AI video.
+
+Local candidate reviews bind source and preview hashes. Rejection deletes only
+owned, unchanged media and preserves source images and a small audit record.
+Eight earlier rejected camera/light preview artifacts were removed; historical
+upload retry files and existing public videos remain untouched. The expanded
+Windows-native regression suite passes 72 tests.
 
 ### Verified
 
