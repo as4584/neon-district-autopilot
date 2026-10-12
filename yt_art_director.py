@@ -83,7 +83,7 @@ def references_for(model, nature, library=LIBRARY):
             selected.append(ref)
         elif ref.get('status') == 'approved' and ref.get('kind') == 'local_output':
             path = (ROOT / ref['image_path']).resolve()
-            if path.is_relative_to(ROOT) and path.is_file():
+            if path.is_relative_to(ROOT.resolve()) and path.is_file():
                 if hashlib.sha256(path.read_bytes()).hexdigest() == ref.get('sha256'):
                     selected.append(ref)
     return data['version'], selected[:3]
@@ -111,8 +111,8 @@ def review_preview(candidate_id, decision, lesson=''):
         raise ValueError('Record what makes this example worth repeating (20-1200 characters)')
     review = {'id': candidate_id, 'kind': 'local_output', 'model': plan['image_model'],
               'status': decision, 'subjects': ['nature' if plan['nature'] else 'interior'],
-              'image_path': path.relative_to(ROOT).as_posix(), 'sha256': plan['image_sha256'],
-              'source': path.relative_to(ROOT).as_posix(), 'lesson': lesson.strip(),
+              'image_path': path.relative_to(ROOT.resolve()).as_posix(), 'sha256': plan['image_sha256'],
+              'source': path.relative_to(ROOT.resolve()).as_posix(), 'lesson': lesson.strip(),
               'prompt': plan['prompt'], 'seed': plan['seed']}
     manifest.write_text(json.dumps(review, indent=2), encoding='utf-8')
     if decision == 'rejected':
