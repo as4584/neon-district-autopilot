@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-11.1",
+  "version": "2026-10-11.2",
   "references": [
     {
       "id": "flux-klein-publisher-composition",
@@ -7,7 +7,7 @@
       "status": "curated_guidance",
       "kind": "publisher_prompt_guidance",
       "source": "https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B/blob/0207e56c7ec73975b6ebeadfaf88c8d338d61a8d/app.py",
-      "subjects": ["interior", "nature"],
+      "subjects": ["interior", "nature", "city"],
       "lesson": "Describe the subject, material texture, direction of light and spatial relationships in connected prose. Keep one coherent scene. The publisher's examples specify concrete objects and their surroundings.",
       "quality_evidence": "Publisher prompting guidance, not a locally validated output or a user-approved image."
     },

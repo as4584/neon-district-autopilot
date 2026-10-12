@@ -11,6 +11,23 @@ import yt_visual_qa as qa
 
 
 class ArtDirectorTests(unittest.TestCase):
+    def test_city_waterfront_is_an_elevated_exterior_not_a_forest_or_room(self):
+        plan = director.direct({'title': 'City Sleep', 'visual_scene': 'high city skyline over a river at blue hour'}, use_agent=False)
+        self.assertEqual(plan['subject'], 'city')
+        self.assertFalse(plan['nature'])
+        self.assertIn('elevated', plan['scene'])
+        self.assertIn('waterfront', plan['scene'])
+        self.assertIn('High overlook', plan['composition'])
+        self.assertNotIn('bedroom', plan['prompt'])
+        self.assertTrue(plan['references'])
+
+    def test_city_outside_explicit_interior_does_not_override_room(self):
+        plan = director.brief({'title': 'Jazz lounge overlooking the city'})
+        self.assertEqual(plan['subject'], 'interior')
+        self.assertIn('candlelit jazz lounge', plan['scene'])
+        plan = director.brief({'title': 'City', 'visual_scene': 'mountain lake at dawn'})
+        self.assertEqual(plan['subject'], 'nature')
+
     def test_nature_sleep_uses_natural_scene_but_explicit_room_is_preserved(self):
         forest = director.direct({'title': 'Forest Sleep', 'visual_scene': 'forest stream'}, use_agent=False)
         self.assertTrue(forest['nature'])

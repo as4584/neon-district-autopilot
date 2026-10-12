@@ -29,6 +29,8 @@ def source_text(item):
 
 
 def is_nature(item):
+    if is_city(item):
+        return False
     explicit = str(item.get('visual_scene', ''))
     if explicit:
         return bool(NATURE.search(explicit))
@@ -39,8 +41,22 @@ def is_nature(item):
     return bool(NATURE.search(text))
 
 
+def is_city(item):
+    text = str(item.get('visual_scene', '')) or source_text(item)
+    if re.search(r'\b(bedroom|lounge|cafe|desk|room|interior)\b', text, re.I):
+        return False
+    return bool(re.search(r'\b(city|cityscape|skyline|rooftop|high-rise)\b', text, re.I))
+
+
 def scene_for(item):
     text = source_text(item)
+    if is_city(item):
+        setting = ('A broad quiet waterfront curves between the neighborhoods.'
+                   if re.search(r'\b(river|harbor|waterfront|bay|coast)\b', text)
+                   else 'Tree-lined streets connect the neighborhoods below.')
+        return ('An elevated panoramic view across a believable city, layered rooftops and '
+                'distinct buildings receding into the distance. ' + setting +
+                ' Straight structural edges, coherent streets and varied building heights.')
     if is_nature(item):
         if re.search(r'\b(ocean|coast)\b', text):
             return 'A quiet rocky coastline, long low waves meeting weathered stones, a level distant horizon and open sky.'
@@ -65,9 +81,9 @@ def scene_for(item):
     return f'A calm interior looking through {rain}, a window seat with natural fabric and a simple wood sill.'
 
 
-def references_for(model, nature, library=LIBRARY):
+def references_for(model, nature, library=LIBRARY, *, subject=None):
     data = json.loads(Path(library).read_text(encoding='utf-8'))
-    subject = 'nature' if nature else 'interior'
+    subject = subject or ('nature' if nature else 'interior')
     selected = []
     # Human-reviewed local examples take priority over publisher guidance.
     local = []
@@ -110,7 +126,7 @@ def review_preview(candidate_id, decision, lesson=''):
     if decision == 'approved' and not 20 <= len(lesson.strip()) <= 1200:
         raise ValueError('Record what makes this example worth repeating (20-1200 characters)')
     review = {'id': candidate_id, 'kind': 'local_output', 'model': plan['image_model'],
-              'status': decision, 'subjects': ['nature' if plan['nature'] else 'interior'],
+              'status': decision, 'subjects': [plan.get('subject', 'nature' if plan['nature'] else 'interior')],
               'image_path': path.relative_to(ROOT.resolve()).as_posix(), 'sha256': plan['image_sha256'],
               'source': path.relative_to(ROOT.resolve()).as_posix(), 'lesson': lesson.strip(),
               'prompt': plan['prompt'], 'seed': plan['seed']}
@@ -125,8 +141,16 @@ def brief(item, attempt=0):
     if model not in PROFILES:
         raise ValueError('No art-direction profile for the configured image model')
     nature = is_nature(item)
+    city = is_city(item)
     text = source_text(item)
-    if nature:
+    if city:
+        if any(word in text for word in ('sunrise', 'dawn', 'sunset')):
+            light = 'Soft low sunlight across masonry and glass, a pale sky and gentle atmospheric depth; restrained natural colors.'
+        elif any(word in text for word in ('daylight', 'overcast', 'afternoon')):
+            light = 'Soft daylight with readable stone, glass and tree textures, subtle reflections and natural atmospheric perspective.'
+        else:
+            light = 'Quiet blue-hour sky above warm scattered windows; readable buildings, balanced exposure and soft water reflections without excessive glow.'
+    elif nature:
         if any(word in text for word in ('sunrise', 'dawn', 'sunset')):
             light = 'Low soft sunlight brushes the distant land, with cool open shadows and a pale sky; restrained color and gentle reflections.'
         elif any(word in text for word in ('daylight', 'overcast', 'afternoon')):
@@ -144,10 +168,17 @@ def brief(item, attempt=0):
         'A slightly wider view with fewer foreground details and the focal point placed off center.',
         'An open composition with a low visual horizon and broad areas of quiet texture.',
     )
+    if city:
+        compositions = (
+            'High overlook with a level horizon, gentle downward angle and a broad open sky; one off-center architectural focal point.',
+            'A wider elevated panorama, layered neighborhoods and ample calm negative space; natural perspective without fisheye distortion.',
+            'An elevated long-lens view with quiet foreground rooftops, a level horizon and a spacious distant skyline.',
+        )
     key = json.dumps({k: item.get(k, '') for k in ('id', 'title', 'prompt', 'visual_scene')}, sort_keys=True)
     seed = int(hashlib.sha256(f'{key}:{model}:{attempt}'.encode()).hexdigest()[:8], 16)
     return {'version': VERSION, 'image_model': model, 'scene': scene_for(item),
-            'nature': nature, 'light': light, 'composition': compositions[attempt % len(compositions)],
+            'nature': nature, 'subject': 'city' if city else ('nature' if nature else 'interior'),
+            'light': light, 'composition': compositions[attempt % len(compositions)],
             'request': {key: str(item.get(key, ''))[:1000]
                         for key in ('title', 'prompt', 'visual_scene')},
             'seed': seed, 'attempt': attempt}
@@ -159,7 +190,7 @@ def fallback_prompt(plan):
 
 def direct(item, *, attempt=0, feedback='', use_agent=True):
     plan = brief(item, attempt)
-    revision, references = references_for(plan['image_model'], plan['nature'])
+    revision, references = references_for(plan['image_model'], plan['nature'], subject=plan['subject'])
     plan.update(library_version=revision, references=[{'id': ref['id'], 'source': ref['source'],
                  'kind': ref['kind']} for ref in references], prompt=fallback_prompt(plan),
                 method='structured_brief', feedback=str(feedback)[:1200])

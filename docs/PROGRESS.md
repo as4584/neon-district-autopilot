@@ -1,5 +1,26 @@
 # Progress Ledger
 
+## 2026-10-11: Elevated City Artwork and Video Research
+
+The owner approved both nature previews; their private, hash-bound review
+records now make them eligible as same-model nature references. City exteriors
+have their own subject routing, lighting and elevated compositions. An interior
+with a city outside its window remains an interior; a city waterfront is not
+misclassified as a forest stream.
+
+Two actual local FLUX.2 Klein 4B previews completed using the local prompt agent:
+a blue-hour waterfront overlook and a sunlit neighborhood panorama. The latter
+did not deliver the requested tall-tower emphasis. Both were visually inspected
+and remain pending owner review; neither has automated visual-QA acceptance or
+upload approval. No new video was generated and no new model was downloaded.
+After completion Ollama listed no loaded models and total GPU use was 1123 MiB.
+
+The expanded suite passes 82 tests in both local and sanitized checkouts.
+See the [video shortlist](../VIDEO_MODEL_SHORTLIST.md) for publisher examples,
+exact candidate variants, hardware caveats and the no-download decision gate.
+Only reduced-resolution Wan is locally exercised; Hunyuan and LTX compatibility
+remain unverified on this machine. Publisher demos do not establish loop quality.
+
 ## 2026-10-11: Local Artwork Prompt Curator
 
 Future cover generation now uses a local CPU prompt agent with exact-model
