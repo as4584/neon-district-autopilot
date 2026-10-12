@@ -1,6 +1,5 @@
 """Stage the official Windows CUDA 13 wheel only; no package execution/install."""
 
-from pathlib import Path
 from types import SimpleNamespace
 
 from stage_ltx import ROOT, download_ranges

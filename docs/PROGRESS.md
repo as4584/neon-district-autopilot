@@ -1,5 +1,26 @@
 # Progress Ledger
 
+## 2026-10-12: LTX Local Inference Verified, Quality Gate Remains
+
+All five pinned official files completed SHA256 verification. An isolated Python
+3.12 / PyTorch 2.11.0 CUDA 13 environment now runs the pinned ComfyUI workflow
+with its optimized CUDA backend enabled. The installed package snapshot is
+recorded in `requirements-ltx.lock.txt`; no music or image environment was upgraded.
+
+The smoke render produced 49 frames at 512x288. A stronger-guidance audition
+produced 97 frames at 1024x576 / 24 fps, taking 64.66 seconds inside the owned
+runtime (preflight hashing excluded). Sampled device-wide GPU memory peaked at
+13,906 MiB; sampled available system memory stayed above 7.41 GiB. Both runtime
+process trees stopped after rendering, with device memory back near desktop
+baseline. The regression suite passes 93 tests, including failed-startup cleanup.
+
+This is execution acceptance, not visual acceptance. The low-resolution smoke
+clip was rejected and its media removed, preserving its source and audit record.
+The higher-resolution clip remains pending: water motion is too subtle, building
+details drift, and the endpoint difference is larger than ordinary frame changes.
+It is not approved as a seamless loop or connected to daily publishing. Local
+preview media stays private; only sanitized findings and reviewed source are public.
+
 ## 2026-10-11: LTX-2.5 Integration in Progress
 
 Owner-authorized access checks passed for five pinned official model files

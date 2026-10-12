@@ -17,7 +17,7 @@ This is a clean public showcase, not a copy of the private operating repository.
 | Model experiments | Curated pinned-weight staging and equal-age reporting implemented |
 | Alternative music engines | HeartMuLa runtime/auditions pending; Stable Audio license gate pending |
 | Automatic model selection | Not enabled; no comparable audience evidence yet |
-| LTX-2.5 local video experiment | Pinned staging and isolated preview runner implemented; runtime startup/shutdown checked, inference and motion quality pending. See [setup status](LTX_SETUP.md). |
+| LTX-2.5 local video experiment | All weights verified; local 1024x576 image-to-video generation and shutdown tested. Visual and loop acceptance still pending. See [setup status](LTX_SETUP.md). |
 
 **This is a work in progress, not a claim of a fully autonomous production deployment.** See [progress](docs/PROGRESS.md) and [findings](findings/experiments.json).
 

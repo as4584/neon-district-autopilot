@@ -1,4 +1,8 @@
 import unittest
+import json
+import tempfile
+from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from scripts import preview_ltx
@@ -42,6 +46,25 @@ class LtxPreviewTests(unittest.TestCase):
         psutil.Process.assert_called_once_with(42)
         child.terminate.assert_called_once()
         process.terminate.assert_called_once()
+
+    def test_startup_failure_stops_owned_runtime_and_records_failure(self):
+        args = SimpleNamespace(id='SMOKE', smoke_only=True, source=None, seed=1, timeout=60)
+        process = mock.Mock()
+        process.poll.return_value = None
+        with tempfile.TemporaryDirectory() as temp:
+            candidate = Path(temp) / 'candidate'
+            with mock.patch.object(preview_ltx.review, 'folder', return_value=candidate), \
+                    mock.patch.object(preview_ltx.subprocess, 'check_output', side_effect=[preview_ltx.REVISION, '']), \
+                    mock.patch.object(preview_ltx.subprocess, 'Popen', return_value=process), \
+                    mock.patch.object(preview_ltx, 'request', side_effect=RuntimeError('startup failed')), \
+                    mock.patch.object(preview_ltx, 'stop_owned') as stop:
+                with self.assertRaises(RuntimeError):
+                    preview_ltx.run(args)
+                stop.assert_called_once_with(process)
+            evidence = json.loads((candidate / 'execution.json').read_text())
+            self.assertEqual(evidence['status'], 'failed')
+            self.assertTrue(evidence['owned_runtime_stopped'])
+            self.assertFalse(evidence['publication_enabled'])
 
 
 if __name__ == '__main__':

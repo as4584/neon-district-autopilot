@@ -39,7 +39,7 @@ def worker_environment():
     return env
 
 
-def workflow(seed=12345, width=512, height=288, frames=49):
+def workflow(seed=12345, width=512, height=288, frames=49, guide_strength=0.7):
     if width % 32 or height % 32 or frames % 8 != 1:
         raise ValueError('LTX geometry must be 32-aligned and frames 8n+1')
     graph = {}
@@ -60,8 +60,8 @@ def workflow(seed=12345, width=512, height=288, frames=49):
     node(11, 'LTXVConditioning', positive=['9', 0], negative=['10', 0], frame_rate=24.0)
     node(12, 'EmptyLTXVLatentVideo', width=width, height=height, length=frames, batch_size=1)
     # Same first/last guide encourages a loop; it does not prove a seamless join.
-    node(13, 'LTXVAddGuide', positive=['11', 0], negative=['11', 1], vae=['4', 0], latent=['12', 0], image=['8', 0], frame_idx=-1, strength=0.7)
-    node(14, 'LTXVAddGuide', positive=['13', 0], negative=['13', 1], vae=['4', 0], latent=['13', 2], image=['8', 0], frame_idx=0, strength=0.7)
+    node(13, 'LTXVAddGuide', positive=['11', 0], negative=['11', 1], vae=['4', 0], latent=['12', 0], image=['8', 0], frame_idx=-1, strength=guide_strength)
+    node(14, 'LTXVAddGuide', positive=['13', 0], negative=['13', 1], vae=['4', 0], latent=['13', 2], image=['8', 0], frame_idx=0, strength=guide_strength)
     node(15, 'LTXVEmptyLatentAudio', audio_vae=['5', 0], frames_number=frames, frame_rate=24, batch_size=1)
     node(16, 'LTXVConcatAVLatent', video_latent=['14', 2], audio_latent=['15', 0])
     node(17, 'RandomNoise', noise_seed=seed)
@@ -130,6 +130,8 @@ def run(args):
     revision = subprocess.check_output(['git', '-C', str(COMFY), 'rev-parse', 'HEAD'], text=True).strip()
     if revision != REVISION:
         raise ValueError('ComfyUI revision changed; revalidation required')
+    if subprocess.check_output(['git', '-C', str(COMFY), 'diff', '--name-only', 'HEAD'], text=True).strip():
+        raise ValueError('Tracked ComfyUI source changed; revalidation required')
     data = load_manifest()
     if not args.smoke_only:
         if not args.source or not Path(args.source).is_file():
@@ -175,7 +177,9 @@ def run(args):
                     if time.monotonic() - started > 180:
                         raise TimeoutError('ComfyUI startup timed out')
                     time.sleep(2)
-            graph = workflow(seed=args.seed)
+            settings = ({'width': 1024, 'height': 576, 'frames': 97, 'guide_strength': 1.0}
+                        if args.quality == 'preview' else {})
+            graph = workflow(seed=args.seed, **settings)
             info = request(port, '/object_info')
             missing = sorted({n['class_type'] for n in graph.values()} - info.keys())
             if missing:
@@ -228,6 +232,7 @@ def main():
     parser.add_argument('--id', required=True)
     parser.add_argument('--source')
     parser.add_argument('--seed', type=int, default=12345)
+    parser.add_argument('--quality', choices=('smoke', 'preview'), default='smoke')
     parser.add_argument('--timeout', type=int, default=1800, choices=range(60, 3601))
     parser.add_argument('--smoke-only', action='store_true')
     run(parser.parse_args())
