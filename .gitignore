@@ -1,4 +1,7 @@
 .venv*/
+.runtimes/
+*.partial
+*.whl
 __pycache__/
 *.pyc
 .env*

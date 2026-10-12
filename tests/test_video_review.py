@@ -29,6 +29,15 @@ class VideoReviewTests(unittest.TestCase):
     def test_pending_is_never_approved(self):
         self.assertFalse(review.is_approved('TEST'))
 
+    def test_ltx_model_provenance_is_recorded(self):
+        other = review.folder('LTX')
+        other.mkdir()
+        preview = other / 'preview.mp4'
+        preview.write_bytes(b'ltx candidate')
+        payload = review.register('LTX', self.source, preview, model='Lightricks/LTX-2.5')
+        self.assertEqual(payload['model'], 'Lightricks/LTX-2.5')
+        self.assertFalse(review.is_approved('LTX'))
+
     def test_rejection_deletes_only_registered_preview(self):
         neighbor = self.directory / 'unrelated.txt'
         neighbor.write_text('keep')

@@ -41,7 +41,7 @@ def save(path, payload):
     temporary.replace(path)
 
 
-def register(candidate_id, source, preview):
+def register(candidate_id, source, preview, model='Wan-AI/Wan2.2-TI2V-5B-Diffusers'):
     directory = folder(candidate_id)
     if (directory / 'review.json').exists():
         raise ValueError('Candidate already registered; use a new ID')
@@ -50,7 +50,7 @@ def register(candidate_id, source, preview):
     if preview.resolve() != owned.resolve() or not owned.is_file():
         raise ValueError('Preview must already be in its candidate directory')
     payload = {'id': candidate_id, 'status': 'pending',
-               'model': 'Wan-AI/Wan2.2-TI2V-5B-Diffusers',
+               'model': model,
                'source_image': str(Path(source).resolve()), 'source_sha256': digest(source),
                'created': datetime.now(timezone.utc).isoformat(),
                'assets': [{'name': preview.name, 'sha256': digest(preview), 'bytes': preview.stat().st_size}]}

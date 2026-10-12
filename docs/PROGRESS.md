@@ -1,5 +1,24 @@
 # Progress Ledger
 
+## 2026-10-11: LTX-2.5 Integration in Progress
+
+Owner-authorized access checks passed for five pinned official model files
+(33.63 GiB). NVFP4 distilled transformer, INT8 text encoder, convolutional video
+VAE, audio VAE and Cinemagraph adapter are staged only after full hash checks.
+Large-file network stalls led to an explicit chunked downloader with checked
+byte ranges, checkpointed partial files, a writer lock and final SHA256 checks.
+
+An isolated Windows ComfyUI startup test found all required preview nodes and
+exited its owned process tree cleanly. Device memory returned to desktop baseline.
+The initial CUDA 12.8 build disabled optimized quantization kernels; CUDA 13
+installation and weight transfer remain in progress. No LTX inference or quality
+acceptance is claimed. The local regression suite passes 92 tests.
+
+The experimental audition graph uses a locked city-water scene, identical
+first/last image guides, eight distilled steps and tiled decoding. It has no
+upload capability and records any generated clip as pending human review.
+Daily publishing remains on still imagery, and existing uploads are untouched.
+
 ## 2026-10-11: Elevated City Artwork and Video Research
 
 The owner approved both nature previews; their private, hash-bound review
