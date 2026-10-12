@@ -32,6 +32,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 import yt_local_image
+import yt_art_director
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 
@@ -106,72 +107,19 @@ def _resolve_genre(item: dict) -> str:
 
 
 def build_prompt(item: dict) -> tuple[str, str]:
-    """
-    Returns (prompt, genre) for this queue item.
-    Genre is used for accent color selection.
-    """
+    """Build a deterministic preview without loading the local prompt agent."""
     genre = _resolve_genre(item)
-    accent = GENRE_ACCENTS.get(genre, GENRE_ACCENTS["default"])["color"]
-
-    title = item.get("title", "1 Hour Ambient Music")
-
-    # Build one coherent physical scene. Specific use cases override broad
-    # nighttime/city cues so a sleep track cannot become generic cyberpunk art.
-    descriptive_source = " ".join([
-        title,
-        item.get("prompt", ""),
-    ]).lower()
-    tag_source = " ".join(item.get("tags", [])).lower()
-    source = descriptive_source or tag_source
-    has_rain = "rain" in source or "rainy" in source
-    if "sleep" in source or "bedroom" in source or "deep rest" in source:
-        rain_detail = "rain streaking the bedroom window" if has_rain else "a quiet moonlit window"
-        scene = (
-            "interior of a serene dark bedroom prepared for sleep, an inviting bed, "
-            f"{rain_detail}, soft cyan and violet neon reflected inside the room; "
-            "the bedroom must dominate the composition, not an exterior city skyline"
-        )
-    elif "meditation" in source or "zen" in source or "mindfulness" in source:
-        scene = "peaceful night meditation garden with water, stones, lotus forms, and subtle neon glow"
-    elif "lounge" in source or "jazz" in source:
-        scene = (
-            "candlelit jazz lounge interior with a grand piano, upright bass, and saxophone, "
-            "warm intimate tables, and a neon city visible through tall windows"
-        )
-    elif "cafe" in source or "coffee" in source:
-        scene = "cozy neon-lit cafe interior with warm tables and rain visible through the windows"
-    elif "study" in source or "focus" in source or "work" in source or "reading" in source:
-        scene = "dark minimalist study or reading desk with a soft neon lamp and calm window reflections"
-    elif "forest" in source or "nature" in source:
-        scene = "dark forest with bioluminescent plants and restrained neon light"
-    elif "space" in source or "cosmic" in source:
-        scene = "cosmic nebula with distant stars and cyan-violet glow"
-    elif "night" in source or "midnight" in source:
-        scene = "quiet nighttime lounge interior with neon light and atmospheric depth"
-    elif has_rain:
-        scene = "rain-streaked window viewed from a calm interior with neon reflections"
-    else:
-        scene = "abstract atmospheric landscape with a clear calm focal point"
-
-    prompt = (
-        f"Cinematic atmospheric {genre} music thumbnail, 16:9 composition. "
-        f"Ultra-dark background (#0a0a0a), {accent} neon light accents. "
-        f"Scene: {scene}. "
-        f"Photorealistic, high contrast, moody depth, volumetric lighting. "
-        f"No text, no people, no faces, no watermarks, no logos, no UI elements. "
-        f"Professional music video aesthetic, immersive and atmospheric."
-    )
-    return prompt, genre
+    return yt_art_director.direct(item, use_agent=False)['prompt'], genre
 
 
 # ── Image generation ──────────────────────────────────────────────────────────
 
-def generate_base_image(prompt: str) -> Image.Image:
+def generate_base_image(prompt: str, seed: int = 42) -> Image.Image:
     """
     Call the configured local image model and return a PIL Image.
     Returns 1280×720 (native 16:9 output).
     """
-    img = yt_local_image.generate(prompt)
+    img = yt_local_image.generate(prompt, seed=seed)
 
     # Ensure 1280×720
     if img.size != (1280, 720):
@@ -304,7 +252,7 @@ def composite_text(img: Image.Image, title: str, genre: str) -> Image.Image:
 
 # ── Main generate function ────────────────────────────────────────────────────
 
-def generate(item: dict, force: bool = False) -> str:
+def generate(item: dict, force: bool = False, *, feedback: str = '', attempt: int = 0) -> str:
     """
     Generate thumbnail for a queue item.
     Returns path to the saved JPEG.
@@ -326,11 +274,12 @@ def generate(item: dict, force: bool = False) -> str:
 
     print(f"  Generating thumbnail for [{item_id}]: {item.get('title', '')[:60]}")
 
-    prompt, genre = build_prompt(item)
+    direction = yt_art_director.direct(item, feedback=feedback, attempt=attempt)
+    prompt, genre = direction['prompt'], _resolve_genre(item)
     print(f"  Genre: {genre} | Prompt: {prompt[:80]}...")
 
     # Generate base image
-    img = generate_base_image(prompt)
+    img = generate_base_image(prompt, seed=direction['seed'])
     print(f"  Image generated: {img.size}")
 
     # Preserve the entire model-generated scene. No titles, logo, bars, or labels.
@@ -347,6 +296,7 @@ def generate(item: dict, force: bool = False) -> str:
         'layout_version': LAYOUT_VERSION,
         'sha256': hashlib.sha256(out_path.read_bytes()).hexdigest(),
         'created': datetime.now(timezone.utc).isoformat(),
+        'art_direction': direction,
     }, indent=2), encoding='utf-8')
     print(f"  Saved: {out_path} ({out_path.stat().st_size // 1024} KB)")
 

@@ -10,8 +10,11 @@ def main():
     parser.add_argument("--model", default="black-forest-labs/FLUX.2-klein-4B")
     parser.add_argument("--prompt-file", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--check-ready", action="store_true")
     args = parser.parse_args()
+    if not 0 <= args.seed < 2**32:
+        raise ValueError('Image seed outside supported range')
     try:
         import torch
         from diffusers import Flux2KleinPipeline, ZImagePipeline
@@ -58,7 +61,7 @@ def main():
         image = pipeline(
             prompt=args.prompt_file.read_text(encoding="utf-8"),
             width=1280, height=720, num_inference_steps=steps, guidance_scale=guidance,
-            generator=torch.Generator("cuda").manual_seed(42),
+            generator=torch.Generator("cuda").manual_seed(args.seed),
         ).images[0]
         args.output.parent.mkdir(parents=True, exist_ok=True)
         image.save(args.output)

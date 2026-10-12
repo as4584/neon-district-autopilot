@@ -536,7 +536,7 @@ class PipelineRegressionTests(unittest.TestCase):
                                return_value=Image.new("RGB", (1280, 720), "blue")) as generate:
             image = thumbnail.generate_base_image("rainy jazz lounge")
         self.assertEqual(image.size, (1280, 720))
-        generate.assert_called_once_with("rainy jazz lounge")
+        generate.assert_called_once_with("rainy jazz lounge", seed=42)
 
     def test_missing_local_image_environment_blocks_without_cloud_fallback(self):
         thumbnail = importlib.import_module("yt_thumbnail")

@@ -18,7 +18,9 @@ def worker_environment():
     return env
 
 
-def generate(prompt: str) -> Image.Image:
+def generate(prompt: str, seed: int = 42) -> Image.Image:
+    if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2**32:
+        raise ValueError('Invalid image seed')
     python = Path(os.environ.get("LOCAL_IMAGE_PYTHON", str(ROOT / ".venv-images" / "Scripts" / "python.exe")))
     if not python.is_file():
         raise RuntimeError("Local image environment is not installed; see LOCAL_IMAGE_MIGRATION.md")
@@ -30,6 +32,7 @@ def generate(prompt: str) -> Image.Image:
         result = subprocess.run([
             str(python), str(ROOT / "scripts" / "generate_local_image.py"),
             "--model", model, "--prompt-file", str(prompt_path), "--output", str(output_path),
+            "--seed", str(seed),
         ], capture_output=True, text=True, timeout=900, env=worker_environment())
         if result.returncode or not output_path.is_file():
             # Do not forward dependency tracebacks or inherited credential data.

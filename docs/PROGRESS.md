@@ -1,5 +1,30 @@
 # Progress Ledger
 
+## 2026-10-11: Local Artwork Prompt Curator
+
+Future cover generation now uses a local CPU prompt agent with exact-model
+reference selection, recorded briefs and reproducible per-item seeds. Natural
+scenes use natural light; neon is optional when the subject does not call for it.
+Visual QA judges composition and material plausibility, requires quality 8/10
+by default, and sends visible defects back into a bounded retry with a new seed.
+
+The initial reference library contains labeled publisher guidance, not purported
+user-approved outputs. Explicitly approved local examples retain image hashes,
+prompts, seeds and aesthetic lessons. Changed, missing, rejected and cross-model
+examples cannot become active references. Rejected isolated previews can be
+deleted while retaining the small review record.
+
+Two actual local FLUX previews completed through the prompt agent: a woodland
+stream and a mountain lake at dawn. Both remain pending human review. The stream
+passed the new automated visual review at content 10, direction 10, quality 9;
+the lake was visually inspected but has not run the automated review. No preview
+was uploaded. After generation Ollama had no loaded model and total GPU use
+returned to 833 MiB. Z-Image profiles are prepared, not locally benchmarked.
+
+All 80 regression tests passed in the Windows source and sanitized checkout.
+The operational health check passed with historical failure warnings preserved.
+See [artwork direction](../ART_DIRECTION.md) for the workflow and review commands.
+
 ## 2026-10-10: Recovery and Public Showcase
 
 ### Motion Requirement Correction

@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Callable
 
 import requests
+import yt_art_director
 from PIL import Image
 
 
@@ -125,6 +126,7 @@ def inspect_visual(source_path: str, item: dict) -> VisualQAResult:
     title = item.get("title", "")
     music_prompt = item.get("prompt", "")
     tags = ", ".join(item.get("tags", []))
+    art_brief = yt_art_director.brief(item)
     prompt = f"""
 You are the strict pre-publish visual QA reviewer for Neon District Archive.
 Judge the VISIBLE SCENE in the attached image, not title text overlaid on it.
@@ -132,15 +134,25 @@ Judge the VISIBLE SCENE in the attached image, not title text overlaid on it.
 Target video title: {title}
 Target description and mood: {music_prompt}
 Target tags: {tags}
+Art direction: {art_brief['scene']} {art_brief['light']}
+Discovery tags are secondary and must not override the explicit scene.
 
 The image must:
 1. Visibly represent the concrete scene, mood, and use case in the target.
-2. Maintain a dark, cinematic neon identity with intentional neon light or glow.
+2. Match the supplied art direction. Nature scenes should have believable natural
+   light and color; neon is not required. Interior scenes should have restrained,
+   purposeful lighting. Do not reward glow, darkness or saturation by themselves.
 3. Be professional 16:9 music-video artwork without obvious corruption, random UI,
    unrelated subject matter, third-party watermarks, or illegible AI text.
 
 Future artwork must be imagery-only: no title overlays, channel logos, branding
 bars, captions, or generated lettering. Flag any such text as a mismatch.
+Judge whether this would be pleasant to leave on screen for hours: coherent
+composition, a clear focal point, breathing room and believable materials.
+Flag warped geometry, duplicated details, implausible reflections, plastic-looking
+foliage, excessive sharpening, glaring highlights and visibly artificial textures.
+The legacy neon_theme_score field now measures fit to the supplied art direction,
+including natural scenery. A beautiful natural landscape can score 10 without neon.
 
 Do not give content-match credit merely because overlay text repeats the title.
 Return only JSON with this exact shape:
@@ -200,7 +212,7 @@ Return only JSON with this exact shape:
     quality_score = _numeric(payload, "visual_quality_score")
     content_min = float(os.environ.get("VISUAL_QA_CONTENT_MIN", "7"))
     neon_min = float(os.environ.get("VISUAL_QA_NEON_MIN", "7"))
-    quality_min = float(os.environ.get("VISUAL_QA_QUALITY_MIN", "7"))
+    quality_min = float(os.environ.get("VISUAL_QA_QUALITY_MIN", "8"))
     mismatches = payload.get("mismatches", [])
     if not isinstance(mismatches, list):
         mismatches = [str(mismatches)]
@@ -237,6 +249,7 @@ def approve_cover(
     regenerate: Callable[[], str],
     *,
     max_regenerations: int | None = None,
+    regenerate_with_feedback: Callable[[VisualQAResult, int], str] | None = None,
 ) -> tuple[str, VisualQAResult]:
     """Approve a cover or regenerate it locally until it passes."""
     if max_regenerations is None:
@@ -252,7 +265,8 @@ def approve_cover(
             return candidate, result
         if attempt < max_regenerations:
             try:
-                candidate = regenerate()
+                candidate = (regenerate_with_feedback(result, attempt + 1)
+                             if regenerate_with_feedback else regenerate())
             except Exception as exc:
                 raise VisualQAFailed(
                     f"Visual QA rejected the cover and image regeneration failed: {exc}"

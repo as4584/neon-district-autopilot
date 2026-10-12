@@ -20,6 +20,7 @@ class ImageryMotionTests(unittest.TestCase):
             covers.mkdir()
             with mock.patch.object(yt_thumbnail, 'BASE_DIR', root), \
                  mock.patch.object(yt_thumbnail, 'COVERS_DIR', covers), \
+                 mock.patch.object(yt_thumbnail.yt_art_director, 'direct', return_value={'prompt': 'A calm room', 'seed': 42}), \
                  mock.patch.object(yt_thumbnail, 'generate_base_image', return_value=Image.new('RGB', (1280, 720), (60, 100, 150))) as generate, \
                  mock.patch.object(yt_thumbnail, 'composite_text') as text, \
                  mock.patch.object(yt_thumbnail, 'crop_watermark_if_present') as crop:

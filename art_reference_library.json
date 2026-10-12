@@ -1,0 +1,35 @@
+{
+  "version": "2026-10-11.1",
+  "references": [
+    {
+      "id": "flux-klein-publisher-composition",
+      "model": "black-forest-labs/FLUX.2-klein-4B",
+      "status": "curated_guidance",
+      "kind": "publisher_prompt_guidance",
+      "source": "https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B/blob/0207e56c7ec73975b6ebeadfaf88c8d338d61a8d/app.py",
+      "subjects": ["interior", "nature"],
+      "lesson": "Describe the subject, material texture, direction of light and spatial relationships in connected prose. Keep one coherent scene. The publisher's examples specify concrete objects and their surroundings.",
+      "quality_evidence": "Publisher prompting guidance, not a locally validated output or a user-approved image."
+    },
+    {
+      "id": "z-base-publisher-lake",
+      "model": "Tongyi-MAI/Z-Image",
+      "status": "curated_guidance",
+      "kind": "publisher_example_prompt",
+      "source": "https://huggingface.co/spaces/Tongyi-MAI/Z-Image/blob/30d2fc34608e8f76cd7421d8b217c9c88415cb9d/app.py",
+      "subjects": ["nature"],
+      "lesson": "The publisher's landscape example relates a mountain lake, nearby pines, sunset illumination and its reflection. Build the image around a few physically related elements rather than a list of spectacular scenery.",
+      "quality_evidence": "Published example prompt; no claim that its output has passed our visual review."
+    },
+    {
+      "id": "z-turbo-publisher-realism",
+      "model": "Tongyi-MAI/Z-Image-Turbo",
+      "status": "curated_guidance",
+      "kind": "publisher_model_guidance",
+      "source": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
+      "subjects": ["interior", "nature"],
+      "lesson": "Use concrete photographic descriptions, natural materials and a clear lighting situation. This distilled model uses guidance zero; put desired properties in the positive prompt instead of relying on a separate negative prompt.",
+      "quality_evidence": "Model documentation; channel-specific visual quality remains to be tested."
+    }
+  ]
+}

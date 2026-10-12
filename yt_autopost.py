@@ -289,12 +289,17 @@ def run_item(item: dict, meta: dict, dry_run: bool = False) -> bool:
         log("  Visual QA mismatch: regenerating cover with the local image model...")
         return yt_thumbnail.generate(item, force=True)
 
+    def regenerate_cover_with_feedback(result, attempt) -> str:
+        feedback = '; '.join([result.reason, *result.mismatches])
+        return yt_thumbnail.generate(item, force=True, feedback=feedback, attempt=attempt)
+
     try:
-        log("  Visual QA: checking cover against description and neon identity...")
+        log("  Visual QA: checking cover against description and art direction...")
         approved_cover, cover_qa = yt_visual_qa.approve_cover(
             item,
             cover_path,
             regenerate_cover_locally,
+            regenerate_with_feedback=regenerate_cover_with_feedback,
         )
         if Path(approved_cover).resolve() != Path(cover_path).resolve():
             cover_path = approved_cover
