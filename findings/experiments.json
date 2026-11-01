@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-10-25T21:00:02.206999+00:00",
+  "checked_at": "2026-11-01T22:00:03.812645+00:00",
   "window_days": 14,
   "models": [
     {
@@ -9,12 +9,23 @@
     },
     {
       "id": "heartmula-3b-4bit",
-      "state": "downloaded-awaiting-runtime-review"
+      "state": "rejected-for-instrumentals"
     },
     {
       "id": "stable-audio-3-small-music",
       "state": "license-blocked"
     }
   ],
-  "cohorts": []
+  "cohorts": [
+    {
+      "model": "ace-step",
+      "series": "Chill Jazz / Rainy Nights",
+      "duration_hours": 1,
+      "videos": 1,
+      "views": 3,
+      "watch_minutes": 10.0,
+      "minutes_per_view": 3.333,
+      "evidence": "inconclusive"
+    }
+  ]
 }
